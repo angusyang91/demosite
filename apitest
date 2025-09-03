@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Writer.com – Audience Generator</title>
+  <style>
+    :root {
+      --bg1: #3b0b0b; /* deep red */
+      --bg2: #8b0000; /* dark red */
+      --panel: #1b1b1b;
+      --text: #f5f5f5;
+      --muted: #bdbdbd;
+      --accent: #ff4d4f;
+      --border: #2a2a2a;
+      --focus: #ffd666;
+    }
+    * { box-sizing: border-box }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.25); backdrop-filter: blur(8px);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .nav h1 { font-size: 16px; letter-spacing: .02em; margin: 0; font-weight: 600 }
+    .container { max-width: 980px; margin: 32px auto; padding: 0 16px }
+
+    .card {
+      background: rgba(20,20,20,.75);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .grid { display: grid; gap: 16px }
+    @media (min-width: 800px) { .grid-2 { grid-template-columns: 2fr 1fr } }
+
+    label { display:block; font-size: 12px; color: var(--muted); margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase }
+    textarea, select, input[type="text"] {
+      width: 100%;
+      background: #111; color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; font-size: 14px;
+      outline: none; transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    textarea { min-height: 180px; resize: vertical }
+    textarea:focus, select:focus, input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,77,79,.2) }
+
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap }
+    .btn {
+      appearance: none; border: 1px solid var(--border); color: #111;
+      background: linear-gradient(180deg, #fff, #f0f0f0);
+      border-radius: 999px; padding: 10px 16px; font-weight: 600; cursor: pointer;
+      transition: transform .06s ease, box-shadow .15s ease;
+    }
+    .btn:active { transform: translateY(1px) }
+    .btn[disabled] { opacity: .6; cursor: not-allowed }
+    .ghost { background: transparent; color: var(--text) }
+
+    .help { font-size: 12px; color: var(--muted) }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0; display: none; place-items: center; z-index: 50;
+      background: rgba(0,0,0,.55);
+    }
+    .modal-backdrop[open] { display: grid }
+    .modal {
+      width: min(860px, calc(100vw - 24px));
+      background: #111; color: var(--text);
+      border: 1px solid var(--border); border-radius: 18px; padding: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      max-height: 85vh; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; gap: 10px
+    }
+    .modal header { display:flex; justify-content: space-between; align-items: center }
+    .modal h2 { font-size: 16px; margin: 0 }
+    .modal .content { overflow: auto; background:#0b0b0b; border:1px solid var(--border); border-radius: 12px; padding: 12px }
+    pre { margin:0; white-space: pre-wrap; word-wrap: break-word }
+
+    .status { font-size: 13px; color: var(--muted) }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Audience Generator (Writer API)</h1>
+    <div class="row">
+      <button class="btn ghost" id="openModalExample">Preview Modal</button>
+      <a class="btn" href="./index.html">← Back to Home</a>
+    </div>
+  </nav>
+
+  <main class="container grid grid-2">
+    <section class="card">
+      <h2 style="margin:0 0 8px 0">Compose</h2>
+      <p class="help" style="margin:0 0 16px 0">Enter your prompt and choose an audience. Clicking <em>Generate</em> will call your Writer <code>applications</code> endpoint.
+      </p>
+
+      <div class="grid">
+        <div>
+          <label for="textInput">Prompt</label>
+          <textarea id="textInput" placeholder="e.g., Draft a 2‑paragraph intro about our new feature launch focusing on time-to-value."></textarea>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 1fr auto; gap: 12px">
+          <div>
+            <label for="audience">Audience</label>
+            <select id="audience">
+              <option>College Student</option>
+              <option>Doctor</option>
+              <option>Teacher</option>
+            </select>
+          </div>
+          <div style="align-self:end">
+            <label>&nbsp;</label>
+            <button id="generateBtn" class="btn">Generate</button>
+          </div>
+        </div>
+
+        <div class="status" id="status"></div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3 style="margin-top:0">Setup</h3>
+      <ol style="margin:8px 0 0 18px; line-height:1.6">
+        <li>Replace <code>WRITER_API_KEY</code> and <code>APPLICATION_ID</code> below.</li>
+        <li>Ensure your application input IDs are exactly <code>Textinput</code> and <code>Audience</code>.</li>
+        <li>For local development, you may need a tiny proxy to avoid CORS. Example options: Netlify Functions, Cloudflare Workers, Vercel Edge, or a minimal Express server.</li>
+      </ol>
+    </aside>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header>
+        <h2 id="modalTitle">Generated Output</h2>
+        <button class="btn" id="closeModal">Close</button>
+      </header>
+      <div class="content">
+        <pre id="modalContent">Waiting for output…</pre>
+      </div>
+      <footer class="row" style="justify-content: space-between">
+        <span class="help">Tip: Copy/paste from here into your editor.</span>
+        <button class="btn ghost" id="copyBtn">Copy</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // —— Replace these with your real values ——
+    const WRITER_API_KEY = "V2xk6Ue6VuaakK21hO6NQXhgLIhpXBpi"; // ⚠️ For production, use a server-side proxy—do not expose keys in the browser.
+    const APPLICATION_ID = "61eb4775-2136-4fad-86e3-cb1e0c0d6036"; // e.g., "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"
+    // ————————————————————————————————
+
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModalBtn = document.getElementById('closeModal');
+    const openExampleBtn = document.getElementById('openModalExample');
+    const copyBtn = document.getElementById('copyBtn');
+    const generateBtn = document.getElementById('generateBtn');
+    const statusEl = document.getElementById('status');
+
+    function openModal(text) {
+      if (text) modalContent.textContent = text;
+      modal.setAttribute('open', '');
+    }
+    function closeModal() { modal.removeAttribute('open'); }
+
+    openExampleBtn?.addEventListener('click', () => openModal('Example preview — results will appear here after generation.'));
+    closeModalBtn?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    copyBtn?.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(modalContent.textContent); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 1200); }
+      catch { alert('Copy failed — select text and copy manually.'); }
+    });
+
+    async function generate() {
+      const text = document.getElementById('textInput').value.trim();
+      const audience = document.getElementById('audience').value.trim();
+      if (!text) { statusEl.textContent = 'Enter a prompt first.'; return; }
+      statusEl.textContent = 'Generating…';
+      generateBtn.disabled = true;
+
+      const url = `https://api.writer.com/v1/applications/${APPLICATION_ID}`;
+      const payload = {
+        inputs: [
+          { id: 'Textinput', value: [ text ] },
+          { id: 'Audience', value: [ audience ] }
+        ]
+      };
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${WRITER_API_KEY}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          // Surface API error details
+          const msg = (data && (data.message || data.error || JSON.stringify(data, null, 2))) || res.statusText;
+          throw new Error(msg);
+        }
+
+        // Try to extract a sensible text output gracefully
+        let outputText = '';
+        if (data && Array.isArray(data.outputs) && data.outputs.length) {
+          const first = data.outputs[0];
+          // Common possibilities: { text }, { content }, { value }, nested structures
+          outputText = first.text || first.content || first.value || '';
+          if (!outputText) {
+            // Search recursively for a string field
+            outputText = findFirstString(first) || '';
+          }
+        }
+        if (!outputText) {
+          outputText = JSON.stringify(data, null, 2); // Fallback: show entire JSON
+        }
+
+        openModal(outputText);
+        statusEl.textContent = 'Done.';
+      } catch (err) {
+        console.error(err);
+        openModal(`Error calling Writer API.\n\n${err.message || err}`);
+        statusEl.textContent = 'Error.';
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    function findFirstString(obj) {
+      try {
+        const stack = [obj];
+        while (stack.length) {
+          const cur = stack.pop();
+          if (typeof cur === 'string') return cur;
+          if (cur && typeof cur === 'object') {
+            for (const k of Object.keys(cur)) stack.push(cur[k]);
+          }
+        }
+      } catch {}
+      return '';
+    }
+
+    generateBtn?.addEventListener('click', generate);
+  </script>
+</body>
+</html>
