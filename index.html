@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Website</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Side Navigation */
+        .sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-left-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Poll Styles */
+        .poll-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .poll-option:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .poll-option.selected {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .poll-bar {
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            color: white;
+            font-weight: 500;
+            min-width: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .poll-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Filters */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Data List */
+        .data-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .data-item:hover {
+            transform: translateX(10px);
+        }
+
+        .data-item h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 1001;
+                background: rgba(102, 126, 234, 0.9);
+                color: white;
+                border: none;
+                padding: 0.8rem;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 1.2rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>Demo Site</h1>
+                <p>Interactive Showcase</p>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item active" data-page="home">🏠 Home</a>
+                <a href="#" class="nav-item" data-page="dashboard">📊 Dashboard</a>
+                <a href="#" class="nav-item" data-page="poll">🗳️ Poll</a>
+                <a href="#" class="nav-item" data-page="data">📋 Data Explorer</a>
+                <a href="#" class="nav-item" data-page="charts">📈 Charts</a>
+                <a href="#" class="nav-item" data-page="about">ℹ️ About</a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Home Page -->
+            <section class="page active" id="home">
+                <div class="page-header">
+                    <h1 class="page-title">Welcome to Demo Site</h1>
+                    <p>Explore our interactive features and modern design</p>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>🚀 Modern Design</h3>
+                        <p>Built with glassmorphism effects, smooth animations, and responsive design that works on all devices.</p>
+                        <button class="btn" onclick="showNotification('Design is amazing!')">Learn More</button>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Interactive Charts</h3>
+                        <p>Explore data visualizations with Chart.js integration and real-time updates.</p>
+                        <button class="btn" onclick="navigateToPage('charts')">View Charts</button>
+                    </div>
+                    <div class="card">
+                        <h3>🗳️ Live Polling</h3>
+                        <p>Participate in interactive polls with real-time results and smooth animations.</p>
+                        <button class="btn" onclick="navigateToPage('poll')">Take Poll</button>
+                    </div>
+                    <div class="card">
+                        <h3>🔍 Data Filtering</h3>
+                        <p>Advanced filtering capabilities with smooth transitions and instant search results.</p>
+                        <button class="btn" onclick="navigateToPage('data')">Explore Data</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Page -->
+            <section class="page" id="dashboard">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p>Key metrics and overview</p>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>Total Users</h3>
+                        <h2 style="color: #667eea; font-size: 2.5rem;">12,847</h2>
+                        <p>↗️ +12% from last month</p>
+                    </div>
+                    <div class="card">
+                        <h3>Revenue</h3>
+                        <h2 style="color: #667eea; font-size: 2.5rem;">$94,230</h2>
+                        <p>↗️ +8% from last month</p>
+                    </div>
+                    <div class="card">
+                        <h3>Active Sessions</h3>
+                        <h2 style="color: #667eea; font-size: 2.5rem;">2,841</h2>
+                        <p>↘️ -3% from yesterday</p>
+                    </div>
+                    <div class="card">
+                        <h3>Conversion Rate</h3>
+                        <h2 style="color: #667eea; font-size: 2.5rem;">3.2%</h2>
+                        <p>↗️ +0.4% from last week</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="dashboardChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Poll Page -->
+            <section class="page" id="poll">
+                <div class="page-header">
+                    <h1 class="page-title">Interactive Poll</h1>
+                    <p>Vote and see real-time results</p>
+                </div>
+                
+                <div class="card">
+                    <h3>What's your favorite programming language?</h3>
+                    <div id="pollContainer">
+                        <div class="poll-option" data-option="javascript">
+                            <span>JavaScript</span>
+                            <span class="vote-count">0 votes</span>
+                        </div>
+                        <div class="poll-option" data-option="python">
+                            <span>Python</span>
+                            <span class="vote-count">0 votes</span>
+                        </div>
+                        <div class="poll-option" data-option="java">
+                            <span>Java</span>
+                            <span class="vote-count">0 votes</span>
+                        </div>
+                        <div class="poll-option" data-option="csharp">
+                            <span>C#</span>
+                            <span class="vote-count">0 votes</span>
+                        </div>
+                        <div class="poll-option" data-option="go">
+                            <span>Go</span>
+                            <span class="vote-count">0 votes</span>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="submitVote()" id="voteBtn">Submit Vote</button>
+                    <button class="btn" onclick="resetPoll()" style="margin-left: 1rem;">Reset Poll</button>
+                </div>
+                
+                <div class="card" id="pollResults" style="margin-top: 2rem;">
+                    <h3>Results</h3>
+                    <div id="resultsBars"></div>
+                </div>
+            </section>
+
+            <!-- Data Explorer Page -->
+            <section class="page" id="data">
+                <div class="page-header">
+                    <h1 class="page-title">Data Explorer</h1>
+                    <p>Filter and explore sample data</p>
+                </div>
+                
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="technology">Technology</button>
+                    <button class="filter-btn" data-category="design">Design</button>
+                    <button class="filter-btn" data-category="business">Business</button>
+                    <button class="filter-btn" data-category="science">Science</button>
+                </div>
+                
+                <input type="text" id="searchInput" placeholder="Search items..." 
+                       style="width: 100%; padding: 1rem; border: 2px solid #667eea; border-radius: 10px; margin-bottom: 2rem; font-size: 1rem;">
+                
+                <div id="dataContainer"></div>
+            </section>
+
+            <!-- Charts Page -->
+            <section class="page" id="charts">
+                <div class="page-header">
+                    <h1 class="page-title">Interactive Charts</h1>
+                    <p>Data visualization examples</p>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>Sales Performance</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>User Demographics</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="demoChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Revenue Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <button class="btn" onclick="updateRevenueChart()">
+                        <span class="loading" id="updateLoading" style="display: none; margin-right: 0.5rem;"></span>
+                        Update Data
+                    </button>
+                </div>
+            </section>
+
+            <!-- About Page -->
+            <section class="page" id="about">
+                <div class="page-header">
+                    <h1 class="page-title">About This Demo</h1>
+                    <p>Technical details and features</p>
+                </div>
+                
+                <div class="card">
+                    <h3>🛠️ Technologies Used</h3>
+                    <p><strong>Frontend:</strong> HTML5, CSS3 (with advanced features like backdrop-filter, CSS Grid, Flexbox)</p>
+                    <p><strong>JavaScript:</strong> ES6+, Chart.js for data visualization</p>
+                    <p><strong>Design:</strong> Glassmorphism, smooth animations, responsive design</p>
+                </div>
+                
+                <div class="card">
+                    <h3>✨ Features</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0;">🎨 Modern glassmorphism design</li>
+                        <li style="padding: 0.5rem 0;">📱 Fully responsive layout</li>
+                        <li style="padding: 0.5rem 0;">🎭 Smooth page transitions</li>
+                        <li style="padding: 0.5rem 0;">📊 Interactive charts and polls</li>
+                        <li style="padding: 0.5rem 0;">🔍 Real-time filtering and search</li>
+                        <li style="padding: 0.5rem 0;">⚡ Fast and lightweight</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>📂 File Structure for GitHub</h3>
+                    <pre style="background: #f8f9fa; padding: 1rem; border-radius: 8px; overflow-x: auto;">
+demo-website/
+├── index.html          (this file)
+├── README.md          (project documentation)
+├── .gitignore         (git ignore rules)
+└── assets/
+    ├── css/
+    │   └── styles.css  (external styles if separated)
+    ├── js/
+    │   └── script.js   (external scripts if separated)
+    └── images/
+        └── (any images you add)
+                    </pre>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let pollVotes = {
+            javascript: 0,
+            python: 0,
+            java: 0,
+            csharp: 0,
+            go: 0
+        };
+        
+        let selectedPollOption = null;
+        let charts = {};
+        
+        // Sample data for filtering
+        const sampleData = [
+            { id: 1, title: "Advanced React Patterns", category: "technology", content: "Exploring higher-order components and render props." },
+            { id: 2, title: "UX Design Principles", category: "design", content: "Core principles for creating intuitive user experiences." },
+            { id: 3, title: "Business Strategy 101", category: "business", content: "Fundamentals of strategic business planning." },
+            { id: 4, title: "Machine Learning Basics", category: "technology", content: "Introduction to ML algorithms and applications." },
+            { id: 5, title: "Color Theory in Design", category: "design", content: "Understanding color relationships and psychology." },
+            { id: 6, title: "Market Analysis", category: "business", content: "Tools and techniques for market research." },
+            { id: 7, title: "Quantum Computing", category: "science", content: "Exploring the future of computational power." },
+            { id: 8, title: "Data Science Ethics", category: "science", content: "Ethical considerations in data analysis." },
+            { id: 9, title: "Typography Best Practices", category: "design", content: "Choosing and using fonts effectively." },
+            { id: 10, title: "Startup Funding", category: "business", content: "Understanding venture capital and funding rounds." }
+        ];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigation();
+            initializePoll();
+            initializeDataExplorer();
+            initializeCharts();
+        });
+
+        // Navigation functionality
+        function initializeNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageName = this.dataset.page;
+                    navigateToPage(pageName);
+                    
+                    // Close mobile menu
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('open');
+                    }
+                });
+            });
+        }
+
+        function navigateToPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageName) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Initialize page-specific content
+            if (pageName === 'dashboard') {
+                initializeDashboardChart();
+            } else if (pageName === 'charts') {
+                initializeAllCharts();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Poll functionality
+        function initializePoll() {
+            const pollOptions = document.querySelectorAll('.poll-option');
+            pollOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    pollOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPollOption = this.dataset.option;
+                });
+            });
+        }
+
+        function submitVote() {
+            if (!selectedPollOption) {
+                showNotification('Please select an option first!');
+                return;
+            }
+            
+            pollVotes[selectedPollOption]++;
+            updatePollResults();
+            showNotification('Vote submitted successfully!');
+            
+            // Disable voting temporarily
+            document.getElementById('voteBtn').disabled = true;
+            setTimeout(() => {
+                document.getElementById('voteBtn').disabled = false;
+                selectedPollOption = null;
+                document.querySelectorAll('.poll-option').forEach(opt => opt.classList.remove('selected'));
+            }, 3000);
+        }
+
+        function updatePollResults() {
+            const total = Object.values(pollVotes).reduce((sum, votes) => sum + votes, 0);
+            
+            // Update vote counts
+            document.querySelectorAll('.poll-option').forEach(option => {
+                const optionName = option.dataset.option;
+                const votes = pollVotes[optionName];
+                option.querySelector('.vote-count').textContent = `${votes} vote${votes !== 1 ? 's' : ''}`;
+            });
+            
+            // Update results bars
+            const resultsContainer = document.getElementById('resultsBars');
+            resultsContainer.innerHTML = '';
+            
+            Object.entries(pollVotes).forEach(([option, votes]) => {
+                const percentage = total > 0 ? (votes / total * 100) : 0;
+                const bar = document.createElement('div');
+                bar.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="text-transform: capitalize;">${option}</span>
+                        <span>${votes} votes (${percentage.toFixed(1)}%)</span>
+                    </div>
+                    <div class="poll-bar" style="width: ${Math.max(percentage, 5)}%;">
+                        ${percentage.toFixed(1)}%
+                    </div>
+                `;
+                resultsContainer.appendChild(bar);
+            });
+        }
+
+        function resetPoll() {
+            Object.keys(pollVotes).forEach(key => pollVotes[key] = 0);
+            updatePollResults();
+            showNotification('Poll reset successfully!');
+        }
+
+        // Data Explorer functionality
+        function initializeDataExplorer() {
+            renderDataItems(sampleData);
+            
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    const filtered = category === 'all' ? sampleData : sampleData.filter(item => item.category === category);
+                    renderDataItems(filtered);
+                });
+            });
+            
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filtered = sampleData.filter(item => 
+                    item.title.toLowerCase().includes(query) || 
+                    item.content.toLowerCase().includes(query)
+                );
+                renderDataItems(filtered);
+            });
+        }
+
+        function renderDataItems(items) {
+            const container = document.getElementById('dataContainer');
+            container.innerHTML = '';
+            
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'data-item';
+                div.innerHTML = `
+                    <h4>${item.title}</h4>
+                    <p><strong>Category:</strong> <span style="color: #667eea; text-transform: capitalize;">${item.category}</span></p>
+                    <p>${item.content}</p>
+                `;
+                container.appendChild(div);
+            });
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="data-item"><h4>No items found</h4><p>Try adjusting your search or filter criteria.</p></div>';
+            }
+        }
+
+        // Charts functionality
+        function initializeCharts() {
+            // Initialize empty chart objects
+            charts.sales = null;
+            charts.demo = null;
+            charts.revenue = null;
+            charts.dashboard = null;
+        }
+
+        function initializeDashboardChart() {
+            if (charts.dashboard) {
+                charts.dashboard.destroy();
+            }
+            
+            const ctx = document.getElementById('dashboardChart');
+            if (!ctx) return;
+            
+            charts.dashboard = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Users',
+                        data: [1200, 1900, 3000, 5000, 8000, 12847],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeAllCharts() {
+            // Sales Chart
+            if (charts.sales) {
+                charts.sales.destroy();
+            }
+            
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                charts.sales = new Chart(salesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        datasets: [{
+                            label: 'Sales ($K)',
+                            data: [65, 59, 80, 81],
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(118, 75, 162, 0.8)',
+                                'rgba(102, 126, 234, 0.6)',
+                                'rgba(118, 75, 162, 0.6)'
+                            ],
+                            borderColor: [
+                                '#667eea',
+                                '#764ba2',
+                                '#667eea',
+                                '#764ba2'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Demographics Chart
+            if (charts.demo) {
+                charts.demo.destroy();
+            }
+            
+            const demoCtx = document.getElementById('demoChart');
+            if (demoCtx) {
+                charts.demo = new Chart(demoCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['18-24', '25-34', '35-44', '45+'],
+                        datasets: [{
+                            data: [30, 40, 20, 10],
+                            backgroundColor: [
+                                '#667eea',
+                                '#764ba2',
+                                '#8b5fbf',
+                                '#9c7cd1'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Revenue Chart
+            if (charts.revenue) {
+                charts.revenue.destroy();
+            }
+            
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                charts.revenue = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Revenue ($K)',
+                            data: [45, 52, 38, 67, 73, 89, 95, 88, 92, 78, 85, 94],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateRevenueChart() {
+            const loading = document.getElementById('updateLoading');
+            loading.style.display = 'inline-block';
+            
+            setTimeout(() => {
+                if (charts.revenue) {
+                    const newData = Array.from({length: 12}, () => Math.floor(Math.random() * 100) + 20);
+                    charts.revenue.data.datasets[0].data = newData;
+                    charts.revenue.update('active');
+                }
+                loading.style.display = 'none';
+                showNotification('Chart updated successfully!');
+            }, 1500);
+        }
+
+        // Utility functions
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 10px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                z-index: 10000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Responsive handling
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
+
+        // Initialize poll results on load
+        updatePollResults();
+
+        // Add some interactive hover effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add parallax effect to background
+            document.addEventListener('mousemove', function(e) {
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+                
+                document.body.style.backgroundPosition = `${mouseX * 20}px ${mouseY * 20}px`;
+            });
+        });
+    </script>
+</body>
+</html>
