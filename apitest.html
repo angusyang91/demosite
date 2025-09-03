@@ -130,7 +130,7 @@
       <h3 style="margin-top:0">Setup</h3>
       <ol style="margin:8px 0 0 18px; line-height:1.6">
         <li>Replace <code>WRITER_API_KEY</code> and <code>APPLICATION_ID</code> below.</li>
-        <li>Ensure your application input IDs are exactly <code>textinput</code> and <code>audience</code>.</li>
+        <li>Ensure your application input IDs are exactly <code>Textinput</code> and <code>Audience</code>.</li>
         <li>For local development, you may need a tiny proxy to avoid CORS. Example options: Netlify Functions, Cloudflare Workers, Vercel Edge, or a minimal Express server.</li>
       </ol>
     </aside>
@@ -156,7 +156,7 @@
   <script>
     // —— Replace these with your real values ——
     const WRITER_API_KEY = "V2xk6Ue6VuaakK21hO6NQXhgLIhpXBpi"; // ⚠️ For production, use a server-side proxy—do not expose keys in the browser.
-    const APPLICATION_ID = "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"; // e.g., "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"
+    const APPLICATION_ID = "61eb4775-2136-4fad-86e3-cb1e0c0d6036"; // e.g., "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"
   
     // ————————————————————————————————
 
@@ -193,8 +193,8 @@
       const url = `https://api.writer.com/v1/applications/${APPLICATION_ID}`;
       const payload = {
         inputs: [
-          { id: 'textinput', value: [ text ] },
-          { id: 'audience', value: [ audience ] }
+          { id: 'Textinput', value: [ text ] },
+          { id: 'Audience', value: [ audience ] }
         ]
       };
 
