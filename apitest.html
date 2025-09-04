@@ -148,113 +148,118 @@
     </div>
   </div>
 
-  <script>
-    // ——— REQUIRED: configure these two values ———
-    const APPLICATION_ID = "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"; // e.g., "61eb4775-2136-4fad-86e3-cb1e0c0d6036"
-    const WORKER_URL = "https://calm-river-0284.angusyang91.workers.dev";         // e.g., "https://writer-proxy.user123.workers.dev/writer"
-    // ————————————————————————————————————————————
+<script>
+  // ——— REQUIRED: configure these two values ———
+  const APPLICATION_ID = "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"; 
+  const WORKER_URL = "https://calm-river-0284.angusyang91.workers.dev"; 
+  // ————————————————————————————————————————————
 
-    const modal = document.getElementById('modal');
-    const modalContent = document.getElementById('modalContent');
-    const closeModalBtn = document.getElementById('closeModal');
-    const openExampleBtn = document.getElementById('openModalExample');
-    const copyBtn = document.getElementById('copyBtn');
-    const generateBtn = document.getElementById('generateBtn');
-    const statusEl = document.getElementById('status');
+  const modal = document.getElementById('modal');
+  const modalContent = document.getElementById('modalContent');
+  const closeModalBtn = document.getElementById('closeModal');
+  const openExampleBtn = document.getElementById('openModalExample');
+  const copyBtn = document.getElementById('copyBtn');
+  const generateBtn = document.getElementById('generateBtn');
+  const statusEl = document.getElementById('status');
 
-    function openModal(text) {
-      if (text) modalContent.textContent = text;
-      modal.setAttribute('open', '');
+  function openModal(text) {
+    if (text) {
+      // Convert \n to <br> for readable formatting
+      modalContent.innerHTML = text
+        .replace(/\n/g, "<br>")
+        .replace(/\s{2,}/g, m => "&nbsp;".repeat(m.length)); 
     }
-    function closeModal() { modal.removeAttribute('open'); }
+    modal.setAttribute('open', '');
+  }
+  function closeModal() { modal.removeAttribute('open'); }
 
-    openExampleBtn?.addEventListener('click', () => openModal('Example preview — results will appear here after generation.'));
-    closeModalBtn?.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  openExampleBtn?.addEventListener('click', () => openModal('Example preview — results will appear here after generation.'));
+  closeModalBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    copyBtn?.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(modalContent.textContent);
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => (copyBtn.textContent = 'Copy'), 1200);
-      } catch {
-        alert('Copy failed — select text and copy manually.');
-      }
-    });
-
-    function validate(text) {
-      if (!text || !text.trim()) {
-        statusEl.innerHTML = '<span class="error">Please enter a prompt.</span>';
-        return false;
-      }
-      if (!WORKER_URL || WORKER_URL.includes("YOUR_WORKER_URL_HERE")) {
-        statusEl.innerHTML = '<span class="error">Set WORKER_URL at the top of the script.</span>';
-        return false;
-      }
-      if (!APPLICATION_ID || APPLICATION_ID.includes("YOUR_APPLICATION_ID_HERE")) {
-        statusEl.innerHTML = '<span class="error">Set APPLICATION_ID at the top of the script.</span>';
-        return false;
-      }
-      return true;
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(modalContent.textContent);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = 'Copy'), 1200);
+    } catch {
+      alert('Copy failed — select text and copy manually.');
     }
+  });
 
-    async function generate() {
-      const text = document.getElementById('textInput').value.trim();
-      const audience = document.getElementById('audience').value.trim();
-      if (!validate(text)) return;
+  function validate(text) {
+    if (!text || !text.trim()) {
+      statusEl.innerHTML = '<span class="error">Please enter a prompt.</span>';
+      return false;
+    }
+    if (!WORKER_URL || WORKER_URL.includes("YOUR_WORKER_URL_HERE")) {
+      statusEl.innerHTML = '<span class="error">Set WORKER_URL at the top of the script.</span>';
+      return false;
+    }
+    if (!APPLICATION_ID || APPLICATION_ID.includes("YOUR_APPLICATION_ID_HERE")) {
+      statusEl.innerHTML = '<span class="error">Set APPLICATION_ID at the top of the script.</span>';
+      return false;
+    }
+    return true;
+  }
 
-      statusEl.textContent = 'Generating…';
-      generateBtn.disabled = true;
+  async function generate() {
+    const text = document.getElementById('textInput').value.trim();
+    const audience = document.getElementById('audience').value.trim();
+    if (!validate(text)) return;
 
-      try {
-        // >>> This is the change from step (4): call your Worker instead of api.writer.com <<<
-        const res = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appId: APPLICATION_ID, text, audience })
-        });
+    statusEl.textContent = 'Generating…';
+    generateBtn.disabled = true;
 
-        const data = await res.json().catch(() => ({}));
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appId: APPLICATION_ID, text, audience })
+      });
 
-        if (!res.ok) {
-          const msg = (data && (data.message || data.error)) || res.statusText || 'Unknown error';
-          throw new Error(msg);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg = (data && (data.message || data.error)) || res.statusText || 'Unknown error';
+        throw new Error(msg);
+      }
+
+      let outputText = '';
+      if (data && Array.isArray(data.outputs) && data.outputs.length) {
+        const first = data.outputs[0];
+        outputText = first.text || first.content || first.value || '';
+        if (!outputText) outputText = findFirstString(first) || '';
+      }
+      if (!outputText) outputText = JSON.stringify(data, null, 2);
+
+      openModal(outputText);
+      statusEl.textContent = 'Done.';
+    } catch (err) {
+      console.error(err);
+      openModal(`Error calling Writer API.\n\n${err.message || err}`);
+      statusEl.innerHTML = `<span class="error">Error: ${err.message || err}</span>`;
+    } finally {
+      generateBtn.disabled = false;
+    }
+  }
+
+  function findFirstString(obj) {
+    try {
+      const stack = [obj];
+      while (stack.length) {
+        const cur = stack.pop();
+        if (typeof cur === 'string') return cur;
+        if (cur && typeof cur === 'object') {
+          for (const k of Object.keys(cur)) stack.push(cur[k]);
         }
-
-        let outputText = '';
-        if (data && Array.isArray(data.outputs) && data.outputs.length) {
-          const first = data.outputs[0];
-          outputText = first.text || first.content || first.value || '';
-          if (!outputText) outputText = findFirstString(first) || '';
-        }
-        if (!outputText) outputText = JSON.stringify(data, null, 2);
-
-        openModal(outputText);
-        statusEl.textContent = 'Done.';
-      } catch (err) {
-        console.error(err);
-        openModal(`Error calling Writer API (via Worker).\n\n${err.message || err}`);
-        statusEl.innerHTML = `<span class="error">Error: ${err.message || err}</span>`;
-      } finally {
-        generateBtn.disabled = false;
       }
-    }
+    } catch {}
+    return '';
+  }
 
-    function findFirstString(obj) {
-      try {
-        const stack = [obj];
-        while (stack.length) {
-          const cur = stack.pop();
-          if (typeof cur === 'string') return cur;
-          if (cur && typeof cur === 'object') {
-            for (const k of Object.keys(cur)) stack.push(cur[k]);
-          }
-        }
-      } catch {}
-      return '';
-    }
+  generateBtn?.addEventListener('click', generate);
+</script>
 
-    generateBtn?.addEventListener('click', generate);
-  </script>
 </body>
 </html>
