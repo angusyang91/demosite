@@ -150,8 +150,8 @@
 
 <script>
   // ——— REQUIRED: configure these two values ———
-  const APPLICATION_ID = "ce03e9ef-a997-4012-9e24-d13bda4bd3a9"; 
-  const WORKER_URL = "https://calm-river-0284.angusyang91.workers.dev"; 
+  const APPLICATION_ID = "ce03e9ef-a997-4012-9e24-d13bda4bd3a9";
+  const WORKER_URL = "https://calm-river-0284.angusyang91.workers.dev";
   // ————————————————————————————————————————————
 
   const modal = document.getElementById('modal');
@@ -162,13 +162,78 @@
   const generateBtn = document.getElementById('generateBtn');
   const statusEl = document.getElementById('status');
 
-  function openModal(text) {
-    if (text) {
-      // Convert \n to <br> for readable formatting
-      modalContent.innerHTML = text
-        .replace(/\n/g, "<br>")
-        .replace(/\s{2,}/g, m => "&nbsp;".repeat(m.length)); 
+  // Ensure readable line breaks & spacing inside the modal
+  if (modalContent) modalContent.style.whiteSpace = 'pre-wrap';
+
+  // --- Formatting helpers ---
+  function normalizeEscapes(str) {
+    if (typeof str !== 'string') return '';
+    // 1) Normalize Windows/Mac newlines to \n
+    // 2) Turn *escaped* sequences (\\n, \\t) into real characters
+    return str
+      .replace(/\r\n?|\r/g, '\n')
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '  ')
+      .replace(/[ \t]+\n/g, '\n') // trim trailing spaces before newline
+      .trim();
+  }
+
+  function objectToReadable(obj) {
+    // Special-case a common Writer payload: { title, suggestion, ... }
+    const keys = Object.keys(obj || {});
+    if (!keys.length) return '';
+
+    const title = obj.title || obj.heading || '';
+    const parts = [];
+    if (title) parts.push(normalizeEscapes(String(title)));
+
+    for (const k of keys) {
+      if (k === 'title' || k === 'heading') continue;
+      const label = k.charAt(0).toUpperCase() + k.slice(1);
+      const val = obj[k];
+
+      if (typeof val === 'string') {
+        parts.push(`${label}:\n${normalizeEscapes(val)}`);
+      } else if (val && typeof val === 'object') {
+        // If it's an object/array, pretty print JSON but also normalize any embedded \n
+        let printed = JSON.stringify(val, null, 2);
+        printed = normalizeEscapes(printed);
+        parts.push(`${label}:\n${printed}`);
+      } else if (val != null) {
+        parts.push(`${label}: ${String(val)}`);
+      }
     }
+    return parts.join('\n\n');
+  }
+
+  function toDisplayText(payload) {
+    // If it's already an object, format it nicely
+    if (payload && typeof payload === 'object') {
+      return objectToReadable(payload);
+    }
+
+    // If it's a string, try to parse JSON; otherwise, normalize escapes
+    if (typeof payload === 'string') {
+      const trimmed = payload.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return objectToReadable(parsed);
+        } catch {
+          // Fall through to plain normalization if not valid JSON
+        }
+      }
+      return normalizeEscapes(payload);
+    }
+
+    // Fallback to JSON pretty print
+    return normalizeEscapes(JSON.stringify(payload, null, 2));
+  }
+
+  function openModal(payload) {
+    const text = toDisplayText(payload);
+    modalContent.textContent = text || 'No output.';
     modal.setAttribute('open', '');
   }
   function closeModal() { modal.removeAttribute('open'); }
@@ -225,19 +290,22 @@
         throw new Error(msg);
       }
 
-      let outputText = '';
+      // Try to extract a primary text output
+      let output = '';
       if (data && Array.isArray(data.outputs) && data.outputs.length) {
         const first = data.outputs[0];
-        outputText = first.text || first.content || first.value || '';
-        if (!outputText) outputText = findFirstString(first) || '';
+        output = first.text || first.content || first.value || '';
+        if (!output) output = findFirstString(first) || '';
       }
-      if (!outputText) outputText = JSON.stringify(data, null, 2);
 
-      openModal(outputText);
+      // If still nothing, show the whole response (prettified)
+      if (!output) output = data;
+
+      openModal(output);
       statusEl.textContent = 'Done.';
     } catch (err) {
       console.error(err);
-      openModal(`Error calling Writer API.\n\n${err.message || err}`);
+      openModal(`Error calling Writer API (via Worker).\n\n${err.message || err}`);
       statusEl.innerHTML = `<span class="error">Error: ${err.message || err}</span>`;
     } finally {
       generateBtn.disabled = false;
@@ -260,6 +328,7 @@
 
   generateBtn?.addEventListener('click', generate);
 </script>
+
 
 </body>
 </html>
