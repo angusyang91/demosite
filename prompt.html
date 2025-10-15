@@ -138,6 +138,7 @@
             border-left: 4px solid #667eea;
             display: none;
             animation: slideIn 0.4s ease-out;
+            position: relative;
         }
 
         @keyframes slideIn {
@@ -160,6 +161,35 @@
             font-weight: 600;
             color: #2d3748;
             margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: auto;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
         }
 
         .result-text {
@@ -255,14 +285,17 @@
         </form>
 
         <div class="result-container" id="resultContainer">
-            <div class="result-label">Optimized Prompt:</div>
+            <div class="result-label">
+                <span>Optimized Prompt:</span>
+                <button class="copy-btn" id="copyBtn">Copy</button>
+            </div>
             <div class="result-text" id="resultText"></div>
         </div>
     </div>
 
     <script>
         // ——— REQUIRED: Configure your Cloudflare Worker URL ———
-        const WORKER_URL = "https://divine-lake-3cc1.angusyang91.workers.dev"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
+        const WORKER_URL = "YOUR_WORKER_URL_HERE"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
         // ————————————————————————————————————————————————————————
 
         const agentConfigs = {
