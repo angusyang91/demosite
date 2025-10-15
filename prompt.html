@@ -266,7 +266,7 @@
 
     <script>
         // ——— REQUIRED: Configure your Cloudflare Worker URL ———
-        const WORKER_URL = "YOUR_WORKER_URL_HERE"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
+        const WORKER_URL = "divine-lake-3cc1.angusyang91.workers.dev"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
         // ————————————————————————————————————————————————————————
 
         const agentConfigs = {
@@ -337,7 +337,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (!WORKER_URL || WORKER_URL === "divine-lake-3cc1.angusyang91.workers.dev") {
+               if (!WORKER_URL || WORKER_URL === "YOUR_WORKER_URL_HERE") {
                 resultText.textContent = 'Please configure WORKER_URL in the script section at the bottom of this page.';
                 resultContainer.classList.add('show', 'error');
                 return;
