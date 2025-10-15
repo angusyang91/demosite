@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 48px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #718096;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%232d3748' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+
+        textarea {
+            min-height: 140px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 32px;
+            padding: 24px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .result-text {
+            font-size: 15px;
+            color: #4a5568;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .error {
+            background: #fff5f5;
+            border-left-color: #fc8181;
+        }
+
+        .error .result-label {
+            color: #c53030;
+        }
+
+        .error .result-text {
+            color: #742a2a;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .agent-info {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 6px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ AI Prompt Generator</h1>
+        <p class="subtitle">Transform your use case into an optimized prompt</p>
+
+        <form id="promptForm">
+            <div class="form-group">
+                <label for="agentType">Select Agent Type</label>
+                <select id="agentType" required>
+                    <option value="">Choose an agent...</option>
+                    <option value="ask">Ask Writer</option>
+                    <option value="action">Action Agent</option>
+                </select>
+                <div class="agent-info" id="agentInfo"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="useCase">Describe Your Use Case</label>
+                <textarea 
+                    id="useCase" 
+                    placeholder="Enter a brief description of what you want to accomplish. For example: 'I need to analyze customer feedback' or 'I want to summarize quarterly reports'..."
+                    required
+                ></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Generate Optimized Prompt
+            </button>
+        </form>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-label">Optimized Prompt:</div>
+            <div class="result-text" id="resultText"></div>
+        </div>
+    </div>
+
+    <script>
+        const agentConfigs = {
+            ask: {
+                url: 'https://api.writer.com/v1/applications/8ad0d05c-14c9-4d44-856f-7795b32eb39b',
+                inputId: 'User Question',
+                info: 'Best for question-answering and information retrieval tasks'
+            },
+            action: {
+                url: 'https://api.writer.com/v1/applications/f6b52d61-ad35-4f0e-80cf-a156ba410ede',
+                inputId: 'Task Description',
+                info: 'Best for action-oriented tasks and complex workflows'
+            }
+        };
+
+        const form = document.getElementById('promptForm');
+        const agentType = document.getElementById('agentType');
+        const agentInfo = document.getElementById('agentInfo');
+        const useCase = document.getElementById('useCase');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultText = document.getElementById('resultText');
+
+        agentType.addEventListener('change', (e) => {
+            const selectedAgent = agentConfigs[e.target.value];
+            if (selectedAgent) {
+                agentInfo.textContent = selectedAgent.info;
+            } else {
+                agentInfo.textContent = '';
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const selectedAgent = agentConfigs[agentType.value];
+            if (!selectedAgent) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span>Generating...';
+            resultContainer.classList.remove('show', 'error');
+
+            try {
+                const response = await fetch(selectedAgent.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer 1mxu3bKy4P1MOvH0A0V8UfNMIADjCRaW'
+                    },
+                    body: JSON.stringify({
+                        inputs: [
+                            {
+                                id: selectedAgent.inputId,
+                                value: [useCase.value.trim()]
+                            }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.outputs && data.outputs.length > 0) {
+                    const output = data.outputs[0].value;
+                    resultText.textContent = Array.isArray(output) ? output.join('\n') : output;
+                    resultContainer.classList.add('show');
+                } else {
+                    throw new Error(data.message || 'Failed to generate prompt');
+                }
+            } catch (error) {
+                resultText.textContent = `Error: ${error.message}\n\nPlease try again or contact support if the issue persists.`;
+                resultContainer.classList.add('show', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Generate Optimized Prompt';
+            }
+        });
+    </script>
+</body>
+</html>
