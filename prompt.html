@@ -318,6 +318,7 @@
         const submitBtn = document.getElementById('submitBtn');
         const resultContainer = document.getElementById('resultContainer');
         const resultText = document.getElementById('resultText');
+        const copyBtn = document.getElementById('copyBtn');
 
         agentType.addEventListener('change', (e) => {
             const selectedAgent = agentConfigs[e.target.value];
@@ -345,18 +346,30 @@
                 return normalizeEscapes(data);
             }
 
+            // Handle Writer API response structure
             if (data.outputs && Array.isArray(data.outputs) && data.outputs.length > 0) {
                 const output = data.outputs[0];
-                const value = output.value || output.text || output.content;
+                let value = output.value || output.text || output.content;
                 
-                if (Array.isArray(value)) {
-                    return normalizeEscapes(value.join('\n'));
+                // If value is an array, get the first item
+                if (Array.isArray(value) && value.length > 0) {
+                    value = value[0];
                 }
+                
+                // If it's an object with suggestion/title, extract the suggestion
+                if (typeof value === 'object' && value !== null) {
+                    if (value.suggestion) {
+                        return normalizeEscapes(value.suggestion);
+                    }
+                    if (value.title && value.suggestion) {
+                        return normalizeEscapes(value.suggestion);
+                    }
+                    // Otherwise stringify the object
+                    return normalizeEscapes(JSON.stringify(value, null, 2));
+                }
+                
                 if (typeof value === 'string') {
                     return normalizeEscapes(value);
-                }
-                if (typeof value === 'object') {
-                    return normalizeEscapes(JSON.stringify(value, null, 2));
                 }
             }
 
@@ -405,6 +418,45 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Generate Optimized Prompt';
+            }
+        });
+
+        // Copy button functionality
+        copyBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const textToCopy = resultText.textContent;
+            
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed:', err);
+                // Fallback: try the older method
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                } catch (fallbackErr) {
+                    alert('Failed to copy. Please select and copy manually.');
+                }
             }
         });
     </script>
