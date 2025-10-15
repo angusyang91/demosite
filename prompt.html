@@ -229,10 +229,6 @@
         <h1>✨ AI Prompt Generator</h1>
         <p class="subtitle">Transform your use case into an optimized prompt</p>
 
-        <div class="setup-note">
-            ⚙️ <strong>Setup Required:</strong> Update <code>WORKER_URL</code> in the script below with your Cloudflare Worker endpoint.
-        </div>
-
         <form id="promptForm">
             <div class="form-group">
                 <label for="agentType">Select Agent Type</label>
@@ -266,7 +262,7 @@
 
     <script>
         // ——— REQUIRED: Configure your Cloudflare Worker URL ———
-        const WORKER_URL = "https://divine-lake-3cc1.angusyang91.workers.dev"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
+        const WORKER_URL = "YOUR_WORKER_URL_HERE"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
         // ————————————————————————————————————————————————————————
 
         const agentConfigs = {
@@ -337,7 +333,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-               if (!WORKER_URL || WORKER_URL === "YOUR_WORKER_URL_HERE") {
+            if (!WORKER_URL || WORKER_URL === "YOUR_WORKER_URL_HERE") {
                 resultText.textContent = 'Please configure WORKER_URL in the script section at the bottom of this page.';
                 resultContainer.classList.add('show', 'error');
                 return;
