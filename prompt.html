@@ -205,12 +205,33 @@
             margin-top: 6px;
             font-style: italic;
         }
+
+        .setup-note {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #78350f;
+        }
+
+        .setup-note code {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>✨ AI Prompt Generator</h1>
         <p class="subtitle">Transform your use case into an optimized prompt</p>
+
+        <div class="setup-note">
+            ⚙️ <strong>Setup Required:</strong> Update <code>WORKER_URL</code> in the script below with your Cloudflare Worker endpoint.
+        </div>
 
         <form id="promptForm">
             <div class="form-group">
@@ -244,15 +265,19 @@
     </div>
 
     <script>
+        // ——— REQUIRED: Configure your Cloudflare Worker URL ———
+        const WORKER_URL = "YOUR_WORKER_URL_HERE"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
+        // ————————————————————————————————————————————————————————
+
         const agentConfigs = {
             ask: {
-                url: 'https://api.writer.com/v1/applications/8ad0d05c-14c9-4d44-856f-7795b32eb39b',
-                inputId: 'User Question',
+                appId: '8ad0d05c-14c9-4d44-856f-7795b32eb39b',
+                inputField: 'userQuestion',
                 info: 'Best for question-answering and information retrieval tasks'
             },
             action: {
-                url: 'https://api.writer.com/v1/applications/f6b52d61-ad35-4f0e-80cf-a156ba410ede',
-                inputId: 'Task Description',
+                appId: 'f6b52d61-ad35-4f0e-80cf-a156ba410ede',
+                inputField: 'taskDescription',
                 info: 'Best for action-oriented tasks and complex workflows'
             }
         };
@@ -274,9 +299,50 @@
             }
         });
 
+        function normalizeEscapes(str) {
+            if (typeof str !== 'string') return '';
+            return str
+                .replace(/\r\n?|\r/g, '\n')
+                .replace(/\\n/g, '\n')
+                .replace(/\\t/g, '  ')
+                .replace(/[ \t]+\n/g, '\n')
+                .trim();
+        }
+
+        function formatOutput(data) {
+            if (!data) return 'No output received.';
+
+            if (typeof data === 'string') {
+                return normalizeEscapes(data);
+            }
+
+            if (data.outputs && Array.isArray(data.outputs) && data.outputs.length > 0) {
+                const output = data.outputs[0];
+                const value = output.value || output.text || output.content;
+                
+                if (Array.isArray(value)) {
+                    return normalizeEscapes(value.join('\n'));
+                }
+                if (typeof value === 'string') {
+                    return normalizeEscapes(value);
+                }
+                if (typeof value === 'object') {
+                    return normalizeEscapes(JSON.stringify(value, null, 2));
+                }
+            }
+
+            return normalizeEscapes(JSON.stringify(data, null, 2));
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            if (!WORKER_URL || WORKER_URL === "divine-lake-3cc1.angusyang91.workers.dev") {
+                resultText.textContent = 'Please configure WORKER_URL in the script section at the bottom of this page.';
+                resultContainer.classList.add('show', 'error');
+                return;
+            }
+
             const selectedAgent = agentConfigs[agentType.value];
             if (!selectedAgent) return;
 
@@ -285,33 +351,27 @@
             resultContainer.classList.remove('show', 'error');
 
             try {
-                const response = await fetch(selectedAgent.url, {
+                const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer 1mxu3bKy4P1MOvH0A0V8UfNMIADjCRaW'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        inputs: [
-                            {
-                                id: selectedAgent.inputId,
-                                value: [useCase.value.trim()]
-                            }
-                        ]
+                        appId: selectedAgent.appId,
+                        [selectedAgent.inputField]: useCase.value.trim()
                     })
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.outputs && data.outputs.length > 0) {
-                    const output = data.outputs[0].value;
-                    resultText.textContent = Array.isArray(output) ? output.join('\n') : output;
+                if (response.ok) {
+                    resultText.textContent = formatOutput(data);
                     resultContainer.classList.add('show');
                 } else {
-                    throw new Error(data.message || 'Failed to generate prompt');
+                    throw new Error(data.message || data.error || 'Failed to generate prompt');
                 }
             } catch (error) {
-                resultText.textContent = `Error: ${error.message}\n\nPlease try again or contact support if the issue persists.`;
+                resultText.textContent = `Error: ${error.message}\n\nPlease check that:\n1. Your Cloudflare Worker URL is correct\n2. Your Worker is deployed and running\n3. The Writer API credentials in your Worker are valid`;
                 resultContainer.classList.add('show', 'error');
             } finally {
                 submitBtn.disabled = false;
