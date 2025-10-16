@@ -266,6 +266,7 @@
                     <option value="">Choose an agent...</option>
                     <option value="ask">Ask Writer</option>
                     <option value="action">Action Agent</option>
+                    <option value="textgen">Text Gen Agent</option>
                 </select>
                 <div class="agent-info" id="agentInfo"></div>
             </div>
@@ -308,6 +309,11 @@
                 appId: 'f6b52d61-ad35-4f0e-80cf-a156ba410ede',
                 inputField: 'taskDescription',
                 info: 'Best for action-oriented tasks and complex workflows'
+            },
+            textgen: {
+                appId: '1a8b8f62-6433-445d-a17a-cec4765989c2',
+                inputField: 'agentUseCase',
+                info: 'Best for generating optimized text-based content and prompts'
             }
         };
 
@@ -342,6 +348,7 @@
         function formatOutput(data) {
             if (!data) return 'No output received.';
 
+            // If it's already a string, return it
             if (typeof data === 'string') {
                 return normalizeEscapes(data);
             }
@@ -356,23 +363,30 @@
                     value = value[0];
                 }
                 
-                // If it's an object with suggestion/title, extract the suggestion
-                if (typeof value === 'object' && value !== null) {
-                    if (value.suggestion) {
-                        return normalizeEscapes(value.suggestion);
+                // Now check if this value is a string (could be JSON string)
+                if (typeof value === 'string') {
+                    // Try to parse it as JSON in case it's a JSON string
+                    try {
+                        const parsed = JSON.parse(value);
+                        // If it has suggestion, extract that
+                        if (parsed && typeof parsed === 'object' && parsed.suggestion) {
+                            return normalizeEscapes(parsed.suggestion);
+                        }
+                        // Otherwise return the original string
+                        return normalizeEscapes(value);
+                    } catch {
+                        // Not JSON, just return the string
+                        return normalizeEscapes(value);
                     }
-                    if (value.title && value.suggestion) {
-                        return normalizeEscapes(value.suggestion);
-                    }
-                    // Otherwise stringify the object
-                    return normalizeEscapes(JSON.stringify(value, null, 2));
                 }
                 
-                if (typeof value === 'string') {
-                    return normalizeEscapes(value);
+                // If it's an object with suggestion/title, extract the suggestion
+                if (typeof value === 'object' && value !== null && value.suggestion) {
+                    return normalizeEscapes(value.suggestion);
                 }
             }
 
+            // Last resort: stringify the whole thing
             return normalizeEscapes(JSON.stringify(data, null, 2));
         }
 
