@@ -348,12 +348,20 @@
         function formatOutput(data) {
             if (!data) return 'No output received.';
 
-            // If it's already a string, return it
+            // If it's already a string, try to extract suggestion from it
             if (typeof data === 'string') {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed && typeof parsed === 'object' && parsed.suggestion) {
+                        return normalizeEscapes(parsed.suggestion);
+                    }
+                } catch {
+                    // Not JSON, return as-is
+                }
                 return normalizeEscapes(data);
             }
 
-            // Handle Writer API response structure
+            // Handle Writer API response structure: data.outputs[0].value
             if (data.outputs && Array.isArray(data.outputs) && data.outputs.length > 0) {
                 const output = data.outputs[0];
                 let value = output.value || output.text || output.content;
@@ -363,27 +371,37 @@
                     value = value[0];
                 }
                 
-                // Now check if this value is a string (could be JSON string)
+                // If it's a string, try to parse as JSON
                 if (typeof value === 'string') {
-                    // Try to parse it as JSON in case it's a JSON string
                     try {
                         const parsed = JSON.parse(value);
-                        // If it has suggestion, extract that
                         if (parsed && typeof parsed === 'object' && parsed.suggestion) {
                             return normalizeEscapes(parsed.suggestion);
                         }
-                        // Otherwise return the original string
+                        // If no suggestion field, return the original string
                         return normalizeEscapes(value);
                     } catch {
-                        // Not JSON, just return the string
+                        // Not JSON, return as-is
                         return normalizeEscapes(value);
                     }
                 }
                 
-                // If it's an object with suggestion/title, extract the suggestion
-                if (typeof value === 'object' && value !== null && value.suggestion) {
-                    return normalizeEscapes(value.suggestion);
+                // If it's an object, check for suggestion field
+                if (typeof value === 'object' && value !== null) {
+                    if (value.suggestion) {
+                        return normalizeEscapes(value.suggestion);
+                    }
+                    // No suggestion field, stringify it
+                    return normalizeEscapes(JSON.stringify(value, null, 2));
                 }
+                
+                // Fallback: return value as-is
+                return normalizeEscapes(String(value));
+            }
+
+            // If the data itself has a suggestion field (less common)
+            if (data.suggestion) {
+                return normalizeEscapes(data.suggestion);
             }
 
             // Last resort: stringify the whole thing
@@ -419,6 +437,10 @@
                 });
 
                 const data = await response.json();
+
+                // DEBUG: Log the raw response to console
+                console.log('Raw API Response:', data);
+                console.log('First output value:', data.outputs?.[0]?.value);
 
                 if (response.ok) {
                     resultText.textContent = formatOutput(data);
