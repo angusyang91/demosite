@@ -359,18 +359,31 @@
                 .trim();
         }
 
+        function cleanMarkdownCodeBlocks(str) {
+            if (typeof str !== 'string') return str;
+            
+            let cleaned = str.trim();
+            
+            // Remove ```json at start and ``` at end
+            if (cleaned.startsWith('```json')) {
+                cleaned = cleaned.substring(7); // Remove ```json
+            } else if (cleaned.startsWith('```')) {
+                cleaned = cleaned.substring(3); // Remove ```
+            }
+            
+            if (cleaned.endsWith('```')) {
+                cleaned = cleaned.substring(0, cleaned.length - 3); // Remove trailing ```
+            }
+            
+            return cleaned.trim();
+        }
+
         function formatOutput(data) {
             if (!data) return 'No output received.';
 
             // If it's already a string, try to extract suggestion from it
             if (typeof data === 'string') {
-                // Remove markdown code block formatting if present
-                let cleanedData = data.trim();
-                if (cleanedData.startsWith('```json')) {
-                    cleanedData = cleanedData.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
-                } else if (cleanedData.startsWith('```')) {
-                    cleanedData = cleanedData.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-                }
+                const cleanedData = cleanMarkdownCodeBlocks(data);
                 
                 try {
                     const parsed = JSON.parse(cleanedData);
@@ -395,15 +408,9 @@
                     value = value[0];
                 }
                 
-                // If it's a string, try to parse as JSON
+                // If it's a string, clean markdown and try to parse as JSON
                 if (typeof value === 'string') {
-                    // Remove markdown code block formatting if present
-                    let cleanedValue = value.trim();
-                    if (cleanedValue.startsWith('```json')) {
-                        cleanedValue = cleanedValue.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
-                    } else if (cleanedValue.startsWith('```')) {
-                        cleanedValue = cleanedValue.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-                    }
+                    const cleanedValue = cleanMarkdownCodeBlocks(value);
                     
                     try {
                         const parsed = JSON.parse(cleanedValue);
@@ -475,8 +482,18 @@
                 console.log('First output value:', data.outputs?.[0]?.value);
 
                 if (response.ok) {
+                    currentResponseData = data;
                     resultText.textContent = formatOutput(data);
                     resultContainer.classList.add('show');
+                    
+                    // Show download button only for Text Gen Agent
+                    if (currentAgentType === 'textgen') {
+                        copyBtn.style.display = 'none';
+                        downloadBtn.style.display = 'inline-block';
+                    } else {
+                        copyBtn.style.display = 'inline-block';
+                        downloadBtn.style.display = 'none';
+                    }
                 } else {
                     throw new Error(data.message || data.error || 'Failed to generate prompt');
                 }
@@ -525,6 +542,35 @@
                 } catch (fallbackErr) {
                     alert('Failed to copy. Please select and copy manually.');
                 }
+            }
+        });
+
+        // Download button functionality
+        downloadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+                const jsonContent = resultText.textContent;
+                const blob = new Blob([jsonContent], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `writer-api-response-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                downloadBtn.textContent = 'Downloaded!';
+                downloadBtn.classList.add('downloaded');
+                setTimeout(() => {
+                    downloadBtn.textContent = 'Download JSON';
+                    downloadBtn.classList.remove('downloaded');
+                }, 2000);
+            } catch (err) {
+                console.error('Download failed:', err);
+                alert('Failed to download. Please try again.');
             }
         });
     </script>
