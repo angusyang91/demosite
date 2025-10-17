@@ -551,7 +551,20 @@
             e.stopPropagation();
             
             try {
-                const jsonContent = resultText.textContent;
+                // Get the cleaned JSON content
+                let jsonContent = resultText.textContent;
+                
+                // Additional cleaning to ensure no backticks
+                jsonContent = cleanMarkdownCodeBlocks(jsonContent);
+                
+                // Validate it's proper JSON and re-stringify to ensure clean format
+                try {
+                    const parsed = JSON.parse(jsonContent);
+                    jsonContent = JSON.stringify(parsed, null, 2);
+                } catch (err) {
+                    console.log('Content is not JSON, downloading as-is');
+                }
+                
                 const blob = new Blob([jsonContent], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
