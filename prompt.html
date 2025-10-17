@@ -166,7 +166,7 @@
             align-items: center;
         }
 
-        .copy-btn {
+        .copy-btn, .download-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -179,17 +179,25 @@
             width: auto;
         }
 
-        .copy-btn:hover {
+        .copy-btn:hover, .download-btn:hover {
             background: #5568d3;
             transform: translateY(-1px);
         }
 
-        .copy-btn:active {
+        .copy-btn:active, .download-btn:active {
             transform: translateY(0);
         }
 
-        .copy-btn.copied {
+        .copy-btn.copied, .download-btn.downloaded {
             background: #48bb78;
+        }
+
+        .download-btn {
+            background: #38b2ac;
+        }
+
+        .download-btn:hover {
+            background: #319795;
         }
 
         .result-text {
@@ -289,6 +297,7 @@
             <div class="result-label">
                 <span>Optimized Prompt:</span>
                 <button class="copy-btn" id="copyBtn">Copy</button>
+                <button class="download-btn" id="downloadBtn" style="display: none;">Download JSON</button>
             </div>
             <div class="result-text" id="resultText"></div>
         </div>
@@ -296,7 +305,7 @@
 
     <script>
         // ——— REQUIRED: Configure your Cloudflare Worker URL ———
-        const WORKER_URL = "https://divine-lake-3cc1.angusyang91.workers.dev"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
+        const WORKER_URL = "YOUR_WORKER_URL_HERE"; // e.g., "https://calm-river-0284.angusyang91.workers.dev"
         // ————————————————————————————————————————————————————————
 
         const agentConfigs = {
@@ -325,9 +334,14 @@
         const resultContainer = document.getElementById('resultContainer');
         const resultText = document.getElementById('resultText');
         const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let currentAgentType = '';
+        let currentResponseData = null;
 
         agentType.addEventListener('change', (e) => {
-            const selectedAgent = agentConfigs[e.target.value];
+            currentAgentType = e.target.value;
+            const selectedAgent = agentConfigs[currentAgentType];
             if (selectedAgent) {
                 agentInfo.textContent = selectedAgent.info;
             } else {
@@ -350,15 +364,25 @@
 
             // If it's already a string, try to extract suggestion from it
             if (typeof data === 'string') {
+                // Remove markdown code block formatting if present
+                let cleanedData = data.trim();
+                if (cleanedData.startsWith('```json')) {
+                    cleanedData = cleanedData.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
+                } else if (cleanedData.startsWith('```')) {
+                    cleanedData = cleanedData.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+                }
+                
                 try {
-                    const parsed = JSON.parse(data);
+                    const parsed = JSON.parse(cleanedData);
                     if (parsed && typeof parsed === 'object' && parsed.suggestion) {
                         return normalizeEscapes(parsed.suggestion);
                     }
+                    // For JSON responses without suggestion, return formatted JSON
+                    return JSON.stringify(parsed, null, 2);
                 } catch {
                     // Not JSON, return as-is
                 }
-                return normalizeEscapes(data);
+                return normalizeEscapes(cleanedData);
             }
 
             // Handle Writer API response structure: data.outputs[0].value
@@ -373,16 +397,24 @@
                 
                 // If it's a string, try to parse as JSON
                 if (typeof value === 'string') {
+                    // Remove markdown code block formatting if present
+                    let cleanedValue = value.trim();
+                    if (cleanedValue.startsWith('```json')) {
+                        cleanedValue = cleanedValue.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
+                    } else if (cleanedValue.startsWith('```')) {
+                        cleanedValue = cleanedValue.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+                    }
+                    
                     try {
-                        const parsed = JSON.parse(value);
+                        const parsed = JSON.parse(cleanedValue);
                         if (parsed && typeof parsed === 'object' && parsed.suggestion) {
                             return normalizeEscapes(parsed.suggestion);
                         }
-                        // If no suggestion field, return the original string
-                        return normalizeEscapes(value);
+                        // For JSON responses without suggestion, return formatted JSON
+                        return JSON.stringify(parsed, null, 2);
                     } catch {
                         // Not JSON, return as-is
-                        return normalizeEscapes(value);
+                        return normalizeEscapes(cleanedValue);
                     }
                 }
                 
@@ -392,7 +424,7 @@
                         return normalizeEscapes(value.suggestion);
                     }
                     // No suggestion field, stringify it
-                    return normalizeEscapes(JSON.stringify(value, null, 2));
+                    return JSON.stringify(value, null, 2);
                 }
                 
                 // Fallback: return value as-is
@@ -405,7 +437,7 @@
             }
 
             // Last resort: stringify the whole thing
-            return normalizeEscapes(JSON.stringify(data, null, 2));
+            return JSON.stringify(data, null, 2);
         }
 
         form.addEventListener('submit', async (e) => {
