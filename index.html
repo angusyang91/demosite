@@ -356,43 +356,66 @@
             to { transform: rotate(360deg); }
         }
     </style>
-    <!-- Pendo Tracking Script -->
-    <script>
-    (function(publicAppId){
-        (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
-        v=['initialize','identify','updateOptions','pageLoad','track','trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
-            o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-            y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+publicAppId+'/pendo.js';
-            z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
-
-            // This function creates visitors and accounts in Pendo
-            // You will need to replace 'VISITOR-ID-GOES-HERE' and 'ACCOUNT-ID-GOES-HERE' with values you use in your app
-            // Please use Strings, Numbers, or Bools for value types.
-            pendo.initialize({
-                visitor: {
-                    id:              'VISITOR-ID-GOES-HERE' // Required if user is logged in
-                    // email:        // Recommended if using Pendo Feedback, or NPS Email
-                    // full_name:    // Recommended if using Pendo Feedback
-                    // role:         // Optional
-
-                    // You can add any additional visitor level key-values here,
-                    // as long as it's not one of the above reserved names.
-                },
-
-                account: {
-                    id:              'ACCOUNT-ID-GOES-HERE' // Highly recommended, required if using Pendo Feedback or OEM Adopt
-                    // name:         // Optional
-                    // is_paying:    // Recommended if using Pendo Feedback
-                    // monthly_value:// Recommended if using Pendo Feedback
-                    // planLevel:    // Optional
-                    // planPrice:    // Optional
-                    // creationDate: // Optional
-
-                    // You can add any additional account level key-values here,
-                    // as long as it's not one of the above reserved names.
-                }
-            });
-    })('26ee6b80-134a-4d22-66b2-323dd35ef232');
+    <!-- Pendo Tracking Script --><script>
+(function(publicAppId){
+    (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
+    v=['initialize','identify','updateOptions','pageLoad','track','trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
+        o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
+        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+publicAppId+'/pendo.js';
+        z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
+        
+        // Random data generators
+        function generateRandomData() {
+            const firstNames = ['Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella', 'James'];
+            const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+            const roles = ['Admin', 'User', 'Manager', 'Developer', 'Analyst', 'Designer', 'Sales', 'Support'];
+            const companies = ['Acme Corp', 'TechStart Inc', 'Global Solutions', 'Innovation Labs', 'Digital Dynamics', 'NextGen Systems', 'Cloud Services Co', 'Data Insights LLC'];
+            
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const fullName = firstName + ' ' + lastName;
+            const email = firstName.toLowerCase() + '.' + lastName.toLowerCase() + '@example.com';
+            const role = roles[Math.floor(Math.random() * roles.length)];
+            const company = companies[Math.floor(Math.random() * companies.length)];
+            const visitorId = 'visitor_' + Math.floor(Math.random() * 100000);
+            const accountId = 'account_' + Math.floor(Math.random() * 10000);
+            
+            return {
+                visitorId: visitorId,
+                accountId: accountId,
+                fullName: fullName,
+                email: email,
+                role: role,
+                companyName: company
+            };
+        }
+        
+        const randomData = generateRandomData();
+        
+        // This function creates visitors and accounts in Pendo
+        pendo.initialize({
+            visitor: {
+                id:              randomData.visitorId,   // Required if user is logged in
+                email:           randomData.email,       // Recommended if using Pendo Feedback, or NPS Email
+                full_name:       randomData.fullName,    // Recommended if using Pendo Feedback
+                role:            randomData.role         // Optional
+                // You can add any additional visitor level key-values here,
+                // as long as it's not one of the above reserved names.
+            },
+            account: {
+                id:              randomData.accountId,   // Highly recommended, required if using Pendo Feedback or OEM Adopt
+                name:            randomData.companyName  // Optional
+                // is_paying:    // Recommended if using Pendo Feedback
+                // monthly_value:// Recommended if using Pendo Feedback
+                // planLevel:    // Optional
+                // planPrice:    // Optional
+                // creationDate: // Optional
+                // You can add any additional account level key-values here,
+                // as long as it's not one of the above reserved names.
+            }
+        });
+})('26ee6b80-134a-4d22-66b2-323dd35ef232');
+</script>
     </script>
 </head>
 <body>
