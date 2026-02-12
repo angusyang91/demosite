@@ -3,9 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Website</title>
+    <title>Enterprise Demo Showcase</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
     <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #2d3748;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,10 +22,12 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             min-height: 100vh;
-            color: #333;
+            color: var(--text-main);
+            overflow-x: hidden;
         }
 
         .container {
@@ -24,431 +35,195 @@
             min-height: 100vh;
         }
 
-        /* Side Navigation */
+        /* Sidebar Navigation */
         .sidebar {
             width: 260px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid var(--glass-border);
             position: fixed;
             height: 100vh;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 2.5rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
+            text-align: center;
         }
 
-        .sidebar-header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .nav-menu {
-            padding: 1rem 0;
-        }
+        .nav-menu { padding: 1.5rem 0; }
 
         .nav-item {
-            display: block;
+            display: flex;
+            align-items: center;
             padding: 1rem 1.5rem;
             color: #4a5568;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: 0.3s;
             border-left: 4px solid transparent;
-            position: relative;
-            overflow: hidden;
+            font-weight: 500;
         }
 
-        .nav-item:hover {
+        .nav-item:hover, .nav-item.active {
             background: rgba(102, 126, 234, 0.1);
-            border-left-color: #667eea;
-            transform: translateX(5px);
+            border-left-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(8px);
         }
 
-        .nav-item.active {
-            background: rgba(102, 126, 234, 0.15);
-            border-left-color: #667eea;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav-item:hover::before {
-            left: 100%;
-        }
-
-        /* Main Content */
+        /* Main Area */
         .main-content {
             flex: 1;
             margin-left: 260px;
-            padding: 2rem;
+            padding: 2.5rem;
+            transition: margin 0.4s ease;
         }
 
         .page {
             display: none;
-            animation: fadeIn 0.5s ease-in;
-            background: rgba(255, 255, 255, 0.95);
+            animation: slideUp 0.5s ease-out;
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .page.active {
-            display: block;
-        }
+        .page.active { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #667eea;
         }
 
         .page-title {
             font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Cards */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .card h3 {
-            color: #667eea;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        /* Buttons */
-        .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        /* Poll Styles */
-        .poll-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem;
-            margin: 0.5rem 0;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .poll-option:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: #667eea;
-        }
-
-        .poll-option.selected {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
-        }
-
-        .poll-bar {
-            height: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
-            margin: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            padding: 0 1rem;
-            color: white;
-            font-weight: 500;
-            min-width: 60px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .poll-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        /* Filters */
-        .filter-bar {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid #667eea;
-            background: transparent;
-            color: #667eea;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .filter-btn:hover,
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        /* Data List */
-        .data-item {
-            padding: 1rem;
-            margin: 0.5rem 0;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.3s ease;
-        }
-
-        .data-item:hover {
-            transform: translateX(10px);
-        }
-
-        .data-item h4 {
-            color: #667eea;
             margin-bottom: 0.5rem;
         }
 
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 2rem 0;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
+        /* UI Components */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+            border: 1px solid #edf2f7;
+        }
+
+        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+            box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.39);
+        }
+
+        .btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.23); }
+
+        /* Poll & Chart Containers */
+        .poll-option {
+            background: #f7fafc;
             padding: 1rem;
+            border-radius: 12px;
+            margin: 0.8rem 0;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                z-index: 1000;
-            }
+        .poll-option.selected { border-color: var(--primary); background: rgba(102, 126, 234, 0.05); }
 
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-                position: fixed;
-                top: 1rem;
-                left: 1rem;
-                z-index: 1001;
-                background: rgba(102, 126, 234, 0.9);
-                color: white;
-                border: none;
-                padding: 0.8rem;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 1.2rem;
-            }
-
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-bar {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
+        .poll-bar {
+            height: 35px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            margin-top: 5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding-left: 1rem;
+            transition: width 1s ease-in-out;
         }
 
-        @media (min-width: 769px) {
-            .mobile-menu-btn {
-                display: none;
-            }
-        }
+        .chart-container { height: 350px; position: relative; margin-top: 1rem; }
 
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
+        /* Mobile Utility */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1001;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
             border-radius: 50%;
-            border-top-color: #667eea;
-            animation: spin 1s ease-in-out infinite;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; padding-top: 4rem; }
+            .mobile-menu-btn { display: block; }
         }
     </style>
-    <!-- Pendo Tracking Script --><script>
-<script>
-(function(publicAppId){
-    (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
-    v=['initialize','identify','updateOptions','pageLoad','track','trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
-        o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+publicAppId+'/pendo.js';
-        z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
-        
-        // Random data generators
-        function generateRandomData() {
-            const firstNames = ['Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella', 'James'];
-            const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-            const roles = [
-                'Customer Success Manager',
-                'Sales Development Representative',
-                'Account Executive',
-                'Marketing Manager',
-                'Product Marketing Manager',
-                'Customer Success Representative',
-                'Sales Manager',
-                'Digital Marketing Specialist',
-                'Content Marketing Manager',
-                'Growth Marketing Manager',
-                'Enterprise Account Executive',
-                'Customer Support Specialist',
-                'Marketing Operations Manager',
-                'Demand Generation Manager',
-                'Sales Engineer'
-            ];
-            const companies = [
-                { name: 'Google', domain: 'google.com' },
-                { name: 'Adobe', domain: 'adobe.com' },
-                { name: 'Microsoft', domain: 'microsoft.com' },
-                { name: 'Salesforce', domain: 'salesforce.com' },
-                { name: 'Amazon', domain: 'amazon.com' },
-                { name: 'Meta', domain: 'meta.com' },
-                { name: 'Apple', domain: 'apple.com' },
-                { name: 'Netflix', domain: 'netflix.com' },
-                { name: 'Spotify', domain: 'spotify.com' },
-                { name: 'HubSpot', domain: 'hubspot.com' },
-                { name: 'Slack', domain: 'slack.com' },
-                { name: 'Zoom', domain: 'zoom.us' },
-                { name: 'Dropbox', domain: 'dropbox.com' },
-                { name: 'LinkedIn', domain: 'linkedin.com' },
-                { name: 'Oracle', domain: 'oracle.com' }
-            ];
-            
-            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            const fullName = firstName + ' ' + lastName;
-            const role = roles[Math.floor(Math.random() * roles.length)];
-            const company = companies[Math.floor(Math.random() * companies.length)];
-            const email = firstName.toLowerCase() + '.' + lastName.toLowerCase() + '@' + company.domain;
-            const visitorId = 'visitor_' + Math.floor(Math.random() * 100000);
-            const accountId = 'account_' + Math.floor(Math.random() * 10000);
-            
-            return {
-                visitorId: visitorId,
-                accountId: accountId,
-                fullName: fullName,
-                email: email,
-                role: role,
-                companyName: company.name
-            };
-        }
-        
-        const randomData = generateRandomData();
-        
-        // This function creates visitors and accounts in Pendo
-        pendo.initialize({
-            visitor: {
-                id:              randomData.visitorId,   // Required if user is logged in
-                email:           randomData.email,       // Recommended if using Pendo Feedback, or NPS Email
-                full_name:       randomData.fullName,    // Recommended if using Pendo Feedback
-                role:            randomData.role         // Optional
-                // You can add any additional visitor level key-values here,
-                // as long as it's not one of the above reserved names.
-            },
-            account: {
-                id:              randomData.accountId,   // Highly recommended, required if using Pendo Feedback or OEM Adopt
-                name:            randomData.companyName  // Optional
-                // is_paying:    // Recommended if using Pendo Feedback
-                // monthly_value:// Recommended if using Pendo Feedback
-                // planLevel:    // Optional
-                // planPrice:    // Optional
-                // creationDate: // Optional
-                // You can add any additional account level key-values here,
-                // as long as it's not one of the above reserved names.
+
+    <script>
+    (function(publicAppId){
+        (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=o._q||[];
+        v=['initialize','identify','updateOptions','pageLoad','track','trackAgent'];for(w=0,x=v.length;w<x;++w)(function(m){
+            o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
+            y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+publicAppId+'/pendo.js';
+            z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
+
+            function generateUser() {
+                const domains = ['google.com', 'writer.com', 'pendo.io', 'apple.com'];
+                const names = ['Arlo', 'Lyra', 'Kael', 'Sloane', 'Atlas'];
+                const selectedName = names[Math.floor(Math.random() * names.length)];
+                return {
+                    id: 'usr_' + Math.floor(Math.random() * 9999),
+                    email: selectedName.toLowerCase() + '@' + domains[Math.floor(Math.random() * domains.length)],
+                    full_name: selectedName + ' ' + 'Demo',
+                    role: 'Executive'
+                };
             }
-        });
-})('26ee6b80-134a-4d22-66b2-323dd35ef232');
-</script>
+
+            const userData = generateUser();
+            pendo.initialize({
+                visitor: { id: userData.id, email: userData.email, full_name: userData.full_name, role: userData.role },
+                account: { id: 'ACC_DEMO_2026', name: 'Global Enterprise Corp' }
+            });
+    })('26ee6b80-134a-4d22-66b2-323dd35ef232');
     </script>
 </head>
 <body>
@@ -457,663 +232,194 @@
     <div class="container">
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1>Demo Site</h1>
-                <p>Interactive Showcase</p>
+                <h2>Demo Platform</h2>
+                <p style="font-size: 0.8rem; opacity: 0.8;">2026 Enterprise Edition</p>
             </div>
-
             <div class="nav-menu">
-                <a href="#" class="nav-item active" data-page="home">🏠 Home</a>
-                <a href="#" class="nav-item" data-page="dashboard">📊 Dashboard</a>
-                <a href="#" class="nav-item" data-page="poll">🗳️ Poll</a>
-                <a href="#" class="nav-item" data-page="data">📋 Data Explorer</a>
-                <a href="#" class="nav-item" data-page="charts">📈 Charts</a>
-                <a href="https://angusyang91.github.io/demosite/apitest" class="nav-item" target="_blank">🔧 API Test</a>
-                <a href="#" class="nav-item" data-page="about">ℹ️ About</a>
+                <a href="#" class="nav-item active" data-page="home">🏠 Overview</a>
+                <a href="#" class="nav-item" data-page="dashboard">📊 Insights</a>
+                <a href="#" class="nav-item" data-page="poll">🗳️ Engagement</a>
+                <a href="#" class="nav-item" data-page="data">📋 Records</a>
+                <a href="#" class="nav-item" data-page="charts">📈 Performance</a>
+                <a href="https://angusyang91.github.io/demosite/apitest" class="nav-item" target="_blank">🔧 API Console</a>
             </div>
-
-
-            
         </nav>
 
         <main class="main-content">
-            <!-- Home Page -->
             <section class="page active" id="home">
-                <div class="page-header">
-                    <h1 class="page-title">Welcome to Demo Site</h1>
-                    <p>Explore our interactive features and modern design</p>
-                </div>
-                
+                <h1 class="page-title">Operational Excellence</h1>
+                <p>Meticulously tracking performance across the digital stack.</p>
                 <div class="card-grid">
                     <div class="card">
-                        <h3>🚀 Modern Design</h3>
-                        <p>Built with glassmorphism effects, smooth animations, and responsive design that works on all devices.</p>
-                        <button class="btn" onclick="showNotification('Design is amazing!')">Learn More</button>
+                        <h3>UX Architecture</h3>
+                        <p>Modern glassmorphism utilizing Hardware Acceleration.</p>
+                        <button class="btn" style="margin-top: 1rem;">View Spec</button>
                     </div>
                     <div class="card">
-                        <h3>📊 Interactive Charts</h3>
-                        <p>Explore data visualizations with Chart.js integration and real-time updates.</p>
-                        <button class="btn" onclick="navigateToPage('charts')">View Charts</button>
-                    </div>
-                    <div class="card">
-                        <h3>🗳️ Live Polling</h3>
-                        <p>Participate in interactive polls with real-time results and smooth animations.</p>
-                        <button class="btn" onclick="navigateToPage('poll')">Take Poll</button>
-                    </div>
-                    <div class="card">
-                        <h3>🔍 Data Filtering</h3>
-                        <p>Advanced filtering capabilities with smooth transitions and instant search results.</p>
-                        <button class="btn" onclick="navigateToPage('data')">Explore Data</button>
+                        <h3>Writer AI Chat</h3>
+                        <p>Real-time generative assistance integrated via secure token.</p>
+                        <button class="btn" style="margin-top: 1rem;" onclick="navigateToPage('dashboard')">Explore AI</button>
                     </div>
                 </div>
             </section>
 
-            <!-- Dashboard Page -->
             <section class="page" id="dashboard">
-                <div class="page-header">
-                    <h1 class="page-title">Dashboard</h1>
-                    <p>Key metrics and overview</p>
-                </div>
-                
+                <h1 class="page-title">System Insights</h1>
                 <div class="card-grid">
-                    <div class="card">
-                        <h3>Total Users</h3>
-                        <h2 style="color: #667eea; font-size: 2.5rem;">12,847</h2>
-                        <p>↗️ +12% from last month</p>
-                    </div>
-                    <div class="card">
-                        <h3>Revenue</h3>
-                        <h2 style="color: #667eea; font-size: 2.5rem;">$94,230</h2>
-                        <p>↗️ +8% from last month</p>
-                    </div>
-                    <div class="card">
-                        <h3>Active Sessions</h3>
-                        <h2 style="color: #667eea; font-size: 2.5rem;">2,841</h2>
-                        <p>↘️ -3% from yesterday</p>
-                    </div>
-                    <div class="card">
-                        <h3>Conversion Rate</h3>
-                        <h2 style="color: #667eea; font-size: 2.5rem;">3.2%</h2>
-                        <p>↗️ +0.4% from last week</p>
-                    </div>
+                    <div class="card"><h3>Active Traffic</h3><h2>14.2k</h2></div>
+                    <div class="card"><h3>Latency</h3><h2>24ms</h2></div>
                 </div>
-                
                 <div class="chart-container">
                     <canvas id="dashboardChart"></canvas>
                 </div>
             </section>
 
-            <!-- Poll Page -->
             <section class="page" id="poll">
-                <div class="page-header">
-                    <h1 class="page-title">Interactive Poll</h1>
-                    <p>Vote and see real-time results</p>
-                </div>
-                
+                <h1 class="page-title">Poll: Future Tech</h1>
                 <div class="card">
-                    <h3>What's your favorite programming language?</h3>
-                    <div id="pollContainer">
-                        <div class="poll-option" data-option="javascript">
-                            <span>JavaScript</span>
-                            <span class="vote-count">0 votes</span>
-                        </div>
-                        <div class="poll-option" data-option="python">
-                            <span>Python</span>
-                            <span class="vote-count">0 votes</span>
-                        </div>
-                        <div class="poll-option" data-option="java">
-                            <span>Java</span>
-                            <span class="vote-count">0 votes</span>
-                        </div>
-                        <div class="poll-option" data-option="csharp">
-                            <span>C#</span>
-                            <span class="vote-count">0 votes</span>
-                        </div>
-                        <div class="poll-option" data-option="go">
-                            <span>Go</span>
-                            <span class="vote-count">0 votes</span>
-                        </div>
+                    <h3>Which technology will dominate in 2026?</h3>
+                    <div id="pollOptions">
+                        <div class="poll-option" data-option="genAI"><span>Generative AI</span><span class="vCount">0</span></div>
+                        <div class="poll-option" data-option="quantum"><span>Quantum Computing</span><span class="vCount">0</span></div>
+                        <div class="poll-option" data-option="spatial"><span>Spatial Computing</span><span class="vCount">0</span></div>
                     </div>
-                    <button class="btn" onclick="submitVote()" id="voteBtn">Submit Vote</button>
-                    <button class="btn" onclick="resetPoll()" style="margin-left: 1rem;">Reset Poll</button>
+                    <button class="btn" onclick="submitVote()" id="voteBtn">Cast Vote</button>
                 </div>
-                
-                <div class="card" id="pollResults" style="margin-top: 2rem;">
-                    <h3>Results</h3>
-                    <div id="resultsBars"></div>
-                </div>
+                <div id="resultsContainer" style="margin-top: 2rem;"></div>
             </section>
 
-            <!-- Data Explorer Page -->
             <section class="page" id="data">
-                <div class="page-header">
-                    <h1 class="page-title">Data Explorer</h1>
-                    <p>Filter and explore sample data</p>
-                </div>
-                
-                <div class="filter-bar">
-                    <button class="filter-btn active" data-category="all">All</button>
-                    <button class="filter-btn" data-category="technology">Technology</button>
-                    <button class="filter-btn" data-category="design">Design</button>
-                    <button class="filter-btn" data-category="business">Business</button>
-                    <button class="filter-btn" data-category="science">Science</button>
-                </div>
-                
-                <input type="text" id="searchInput" placeholder="Search items..." 
-                       style="width: 100%; padding: 1rem; border: 2px solid #667eea; border-radius: 10px; margin-bottom: 2rem; font-size: 1rem;">
-                
-                <div id="dataContainer"></div>
+                <h1 class="page-title">Records Explorer</h1>
+                <input type="text" id="dbSearch" placeholder="Search enterprise data..." 
+                       style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid #ddd; margin: 1.5rem 0;">
+                <div id="dbList"></div>
             </section>
 
-            <!-- Charts Page -->
             <section class="page" id="charts">
-                <div class="page-header">
-                    <h1 class="page-title">Interactive Charts</h1>
-                    <p>Data visualization examples</p>
-                </div>
-                
-                <div class="card-grid">
-                    <div class="card">
-                        <h3>Sales Performance</h3>
-                        <div class="chart-container" style="height: 300px;">
-                            <canvas id="salesChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>User Demographics</h3>
-                        <div class="chart-container" style="height: 300px;">
-                            <canvas id="demoChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
+                <h1 class="page-title">Analytics Engine</h1>
                 <div class="card">
-                    <h3>Revenue Trends</h3>
-                    <div class="chart-container">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
-                    <button class="btn" onclick="updateRevenueChart()">
-                        <span class="loading" id="updateLoading" style="display: none; margin-right: 0.5rem;"></span>
-                        Update Data
-                    </button>
-                </div>
-            </section>
-
-            <!-- About Page -->
-            <section class="page" id="about">
-                <div class="page-header">
-                    <h1 class="page-title">About This Demo</h1>
-                    <p>Technical details and features</p>
-                </div>
-                
-                <div class="card">
-                    <h3>🛠️ Technologies Used</h3>
-                    <p><strong>Frontend:</strong> HTML5, CSS3 (with advanced features like backdrop-filter, CSS Grid, Flexbox)</p>
-                    <p><strong>JavaScript:</strong> ES6+, Chart.js for data visualization</p>
-                    <p><strong>Design:</strong> Glassmorphism, smooth animations, responsive design</p>
-                </div>
-                
-                <div class="card">
-                    <h3>✨ Features</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="padding: 0.5rem 0;">🎨 Modern glassmorphism design</li>
-                        <li style="padding: 0.5rem 0;">📱 Fully responsive layout</li>
-                        <li style="padding: 0.5rem 0;">🎭 Smooth page transitions</li>
-                        <li style="padding: 0.5rem 0;">📊 Interactive charts and polls</li>
-                        <li style="padding: 0.5rem 0;">🔍 Real-time filtering and search</li>
-                        <li style="padding: 0.5rem 0;">⚡ Fast and lightweight</li>
-                    </ul>
-                </div>
-                
-                <div class="card">
-                    <h3>📂 File Structure for GitHub</h3>
-                    <pre style="background: #f8f9fa; padding: 1rem; border-radius: 8px; overflow-x: auto;">
-demo-website/
-├── index.html          (this file)
-├── README.md          (project documentation)
-├── .gitignore         (git ignore rules)
-└── assets/
-    ├── css/
-    │   └── styles.css  (external styles if separated)
-    ├── js/
-    │   └── script.js   (external scripts if separated)
-    └── images/
-        └── (any images you add)
-                    </pre>
+                    <div class="chart-container"><canvas id="perfChart"></canvas></div>
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // Global variables
-        let pollVotes = {
-            javascript: 0,
-            python: 0,
-            java: 0,
-            csharp: 0,
-            go: 0
-        };
-        
-        let selectedPollOption = null;
-        let charts = {};
-        
-        // Sample data for filtering
-        const sampleData = [
-            { id: 1, title: "Advanced React Patterns", category: "technology", content: "Exploring higher-order components and render props." },
-            { id: 2, title: "UX Design Principles", category: "design", content: "Core principles for creating intuitive user experiences." },
-            { id: 3, title: "Business Strategy 101", category: "business", content: "Fundamentals of strategic business planning." },
-            { id: 4, title: "Machine Learning Basics", category: "technology", content: "Introduction to ML algorithms and applications." },
-            { id: 5, title: "Color Theory in Design", category: "design", content: "Understanding color relationships and psychology." },
-            { id: 6, title: "Market Analysis", category: "business", content: "Tools and techniques for market research." },
-            { id: 7, title: "Quantum Computing", category: "science", content: "Exploring the future of computational power." },
-            { id: 8, title: "Data Science Ethics", category: "science", content: "Ethical considerations in data analysis." },
-            { id: 9, title: "Typography Best Practices", category: "design", content: "Choosing and using fonts effectively." },
-            { id: 10, title: "Startup Funding", category: "business", content: "Understanding venture capital and funding rounds." }
-        ];
+        // Core State
+        let activeCharts = {};
+        const pollKey = 'demo_poll_data';
+        let votes = JSON.parse(localStorage.getItem(pollKey)) || { genAI: 0, quantum: 0, spatial: 0 };
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeNavigation();
-            initializePoll();
-            initializeDataExplorer();
-            initializeCharts();
+        // Navigation
+        function navigateToPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const target = document.getElementById(id);
+            if(target) {
+                target.classList.add('active');
+                document.querySelector(`[data-page="${id}"]`)?.classList.add('active');
+                initPageModules(id);
+            }
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const page = item.getAttribute('data-page');
+                if(page) { e.preventDefault(); navigateToPage(page); }
+            });
         });
 
-        // Navigation functionality
-        function initializeNavigation() {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const pageName = this.dataset.page;
-                    navigateToPage(pageName);
-                    
-                    // Close mobile menu
-                    if (window.innerWidth <= 768) {
-                        document.getElementById('sidebar').classList.remove('open');
-                    }
-                });
-            });
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+        // Page Module Initializers
+        function initPageModules(id) {
+            if (id === 'dashboard') initDashboardChart();
+            if (id === 'charts') initPerfChart();
+            if (id === 'poll') renderPoll();
         }
 
-        function navigateToPage(pageName) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            // Show selected page
-            document.getElementById(pageName).classList.add('active');
-            
-            // Update navigation
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.page === pageName) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Initialize page-specific content
-            if (pageName === 'dashboard') {
-                initializeDashboardChart();
-            } else if (pageName === 'charts') {
-                initializeAllCharts();
-            }
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        // Poll functionality
-        function initializePoll() {
-            const pollOptions = document.querySelectorAll('.poll-option');
-            pollOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    pollOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedPollOption = this.dataset.option;
-                });
-            });
-        }
-
-        function submitVote() {
-            if (!selectedPollOption) {
-                showNotification('Please select an option first!');
-                return;
-            }
-            
-            pollVotes[selectedPollOption]++;
-            updatePollResults();
-            showNotification('Vote submitted successfully!');
-            
-            // Disable voting temporarily
-            document.getElementById('voteBtn').disabled = true;
-            setTimeout(() => {
-                document.getElementById('voteBtn').disabled = false;
-                selectedPollOption = null;
-                document.querySelectorAll('.poll-option').forEach(opt => opt.classList.remove('selected'));
-            }, 3000);
-        }
-
-        function updatePollResults() {
-            const total = Object.values(pollVotes).reduce((sum, votes) => sum + votes, 0);
-            
-            // Update vote counts
-            document.querySelectorAll('.poll-option').forEach(option => {
-                const optionName = option.dataset.option;
-                const votes = pollVotes[optionName];
-                option.querySelector('.vote-count').textContent = `${votes} vote${votes !== 1 ? 's' : ''}`;
-            });
-            
-            // Update results bars
-            const resultsContainer = document.getElementById('resultsBars');
-            resultsContainer.innerHTML = '';
-            
-            Object.entries(pollVotes).forEach(([option, votes]) => {
-                const percentage = total > 0 ? (votes / total * 100) : 0;
-                const bar = document.createElement('div');
-                bar.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span style="text-transform: capitalize;">${option}</span>
-                        <span>${votes} votes (${percentage.toFixed(1)}%)</span>
-                    </div>
-                    <div class="poll-bar" style="width: ${Math.max(percentage, 5)}%;">
-                        ${percentage.toFixed(1)}%
-                    </div>
-                `;
-                resultsContainer.appendChild(bar);
-            });
-        }
-
-        function resetPoll() {
-            Object.keys(pollVotes).forEach(key => pollVotes[key] = 0);
-            updatePollResults();
-            showNotification('Poll reset successfully!');
-        }
-
-        // Data Explorer functionality
-        function initializeDataExplorer() {
-            renderDataItems(sampleData);
-            
-            // Filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const category = this.dataset.category;
-                    const filtered = category === 'all' ? sampleData : sampleData.filter(item => item.category === category);
-                    renderDataItems(filtered);
-                });
-            });
-            
-            // Search functionality
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                const filtered = sampleData.filter(item => 
-                    item.title.toLowerCase().includes(query) || 
-                    item.content.toLowerCase().includes(query)
-                );
-                renderDataItems(filtered);
-            });
-        }
-
-        function renderDataItems(items) {
-            const container = document.getElementById('dataContainer');
-            container.innerHTML = '';
-            
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'data-item';
-                div.innerHTML = `
-                    <h4>${item.title}</h4>
-                    <p><strong>Category:</strong> <span style="color: #667eea; text-transform: capitalize;">${item.category}</span></p>
-                    <p>${item.content}</p>
-                `;
-                container.appendChild(div);
-            });
-            
-            if (items.length === 0) {
-                container.innerHTML = '<div class="data-item"><h4>No items found</h4><p>Try adjusting your search or filter criteria.</p></div>';
-            }
-        }
-
-        // Charts functionality
-        function initializeCharts() {
-            // Initialize empty chart objects
-            charts.sales = null;
-            charts.demo = null;
-            charts.revenue = null;
-            charts.dashboard = null;
-        }
-
-        function initializeDashboardChart() {
-            if (charts.dashboard) {
-                charts.dashboard.destroy();
-            }
-            
-            const ctx = document.getElementById('dashboardChart');
-            if (!ctx) return;
-            
-            charts.dashboard = new Chart(ctx, {
+        // Charting
+        function initDashboardChart() {
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            if(activeCharts.db) activeCharts.db.destroy();
+            activeCharts.db = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
                     datasets: [{
-                        label: 'Users',
-                        data: [1200, 1900, 3000, 5000, 8000, 12847],
+                        label: 'System Load',
+                        data: [30, 45, 62, 55, 80, 45],
                         borderColor: '#667eea',
+                        fill: true,
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.4
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        function initializeAllCharts() {
-            // Sales Chart
-            if (charts.sales) {
-                charts.sales.destroy();
-            }
-            
-            const salesCtx = document.getElementById('salesChart');
-            if (salesCtx) {
-                charts.sales = new Chart(salesCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                        datasets: [{
-                            label: 'Sales ($K)',
-                            data: [65, 59, 80, 81],
-                            backgroundColor: [
-                                'rgba(102, 126, 234, 0.8)',
-                                'rgba(118, 75, 162, 0.8)',
-                                'rgba(102, 126, 234, 0.6)',
-                                'rgba(118, 75, 162, 0.6)'
-                            ],
-                            borderColor: [
-                                '#667eea',
-                                '#764ba2',
-                                '#667eea',
-                                '#764ba2'
-                            ],
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Demographics Chart
-            if (charts.demo) {
-                charts.demo.destroy();
-            }
-            
-            const demoCtx = document.getElementById('demoChart');
-            if (demoCtx) {
-                charts.demo = new Chart(demoCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['18-24', '25-34', '35-44', '45+'],
-                        datasets: [{
-                            data: [30, 40, 20, 10],
-                            backgroundColor: [
-                                '#667eea',
-                                '#764ba2',
-                                '#8b5fbf',
-                                '#9c7cd1'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-
-            // Revenue Chart
-            if (charts.revenue) {
-                charts.revenue.destroy();
-            }
-            
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx) {
-                charts.revenue = new Chart(revenueCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                        datasets: [{
-                            label: 'Revenue ($K)',
-                            data: [45, 52, 38, 67, 73, 89, 95, 88, 92, 78, 85, 94],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function updateRevenueChart() {
-            const loading = document.getElementById('updateLoading');
-            loading.style.display = 'inline-block';
-            
-            setTimeout(() => {
-                if (charts.revenue) {
-                    const newData = Array.from({length: 12}, () => Math.floor(Math.random() * 100) + 20);
-                    charts.revenue.data.datasets[0].data = newData;
-                    charts.revenue.update('active');
-                }
-                loading.style.display = 'none';
-                showNotification('Chart updated successfully!');
-            }, 1500);
-        }
-
-        // Utility functions
-        function showNotification(message) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 10px;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-                z-index: 10000;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Responsive handling
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        });
-
-        // Initialize poll results on load
-        updatePollResults();
-
-        // Add some interactive hover effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add parallax effect to background
-            document.addEventListener('mousemove', function(e) {
-                const mouseX = e.clientX / window.innerWidth;
-                const mouseY = e.clientY / window.innerHeight;
-                
-                document.body.style.backgroundPosition = `${mouseX * 20}px ${mouseY * 20}px`;
+        function initPerfChart() {
+            const ctx = document.getElementById('perfChart').getContext('2d');
+            if(activeCharts.perf) activeCharts.perf.destroy();
+            activeCharts.perf = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Latency', 'Throughput', 'Uptime', 'Security'],
+                    datasets: [{
+                        data: [95, 88, 99, 92],
+                        backgroundColor: ['#667eea', '#764ba2', '#667eea', '#764ba2']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
             });
+        }
+
+        // Poll Logic
+        let selectedOption = null;
+        document.querySelectorAll('.poll-option').forEach(opt => {
+            opt.onclick = () => {
+                document.querySelectorAll('.poll-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedOption = opt.dataset.option;
+            };
         });
+
+        function submitVote() {
+            if(!selectedOption) return alert("Select an option");
+            votes[selectedOption]++;
+            localStorage.setItem(pollKey, JSON.stringify(votes));
+            
+            // Pendo Track Event
+            if(window.pendo) pendo.track("Poll_Vote_Submitted", { selected_tech: selectedOption });
+            
+            renderPoll();
+            alert("Vote Recorded via Pendo and LocalStorage!");
+        }
+
+        function renderPoll() {
+            const container = document.getElementById('resultsContainer');
+            const total = Object.values(votes).reduce((a, b) => a + b, 0);
+            container.innerHTML = '<h3>Live Standings</h3>';
+            
+            Object.entries(votes).forEach(([key, val]) => {
+                const perc = total === 0 ? 0 : Math.round((val / total) * 100);
+                container.innerHTML += `
+                    <div style="margin: 1rem 0;">
+                        <div style="display:flex; justify-content:space-between"><span>${key}</span><span>${perc}%</span></div>
+                        <div class="poll-bar" style="width: ${perc}%">${val} Votes</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Writer Chat Configuration
+        window.writerEmbedConfig = {
+            token: 'KhaA53pTd_uxHI3TOYAoi4vfH9iGJ_aZEVm3pwQwTMU',
+            baseUrl: 'https://embed.writer.com/chat/'
+        };
     </script>
-
-      <script>
-    window.writerEmbedConfig = {
-      token: 'KhaA53pTd_uxHI3TOYAoi4vfH9iGJ_aZEVm3pwQwTMU',
-      baseUrl: 'https://embed.writer.com/chat/'
-    }
-  </script>
-  <script
-    src="https://embed.writer.com/assets/chat-embed.min.js"
-    defer>
- </script>
+    <script src="https://embed.writer.com/assets/chat-embed.min.js" defer></script>
 </body>
 </html>
